@@ -16,7 +16,7 @@
 - [Examples](#examples)
 - [URL Parameters](#url-parameters)
 - [Export & Integration](#export--integration)
-- [References](#OT-Security0Resources)
+- [References](#OT-Security-Resources)
 
 ---
 
