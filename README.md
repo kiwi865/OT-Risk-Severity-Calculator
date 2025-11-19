@@ -1,11 +1,6 @@
-# OT-Risk-Severity-Calculator
-
 # 🛡️ OT Risk Severity Calculator
 
 **Comprehensive Risk Assessment for Operational Technology Environments**
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![HTML5](https://img.shields.io/badge/HTML5-Supported-orange.svg)](https://www.w3.org/html/)
 
 ---
 
@@ -21,7 +16,7 @@
 - [Examples](#examples)
 - [URL Parameters](#url-parameters)
 - [Export & Integration](#export--integration)
-- [References](#references)
+- [References](#OT-Security0Resources)
 
 ---
 
@@ -82,7 +77,7 @@ Same CVE, three different actual risk levels!
 - Can't differentiate between different types of OT assets
 - Lack standardization across assessors
 
-**Result:** Inconsistent scoring, difficulty comparing vulnerabilities, and poor integration with vulnerability management tools.
+**Result:** Inconsistent scoring, difficulty comparing vulnerabilities, and poor  with vulnerability management tools.
 
 ---
 
@@ -184,7 +179,7 @@ Same CVE, three different actual risk levels!
 </tr>
 
 <tr>
-<td><strong>Tool Integration</strong></td>
+<td><strong>Tool </strong></td>
 <td>✅ Wide support</td>
 <td>❌ Manual usually</td>
 <td>✅ JSON export, URL parameters</td>
@@ -243,7 +238,7 @@ Same CVE, three different actual risk levels!
 - Example: `calculator.html?asset=PLC-01&safety=10&technical=7.5`
 
 ### 💾 **Export Capabilities**
-- **JSON Export** - Machine-readable data for integration
+- **JSON Export** - Machine-readable data for 
 - **Print Reports** - Professional PDF documentation
 - **Shareable URLs** - Collaborate with team members
 
