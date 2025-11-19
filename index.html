@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OTRSC - OT Risk Severity Calculator v2.0</title>
+    <title>OT Risk Severity Calculator v2.0</title>
     <style>
         * {
             margin: 0;
@@ -263,40 +263,54 @@
         }
 
         .score-card {
-            background: rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.25);
             padding: 20px;
             border-radius: 10px;
             text-align: center;
+            border: 2px solid rgba(255,255,255,0.3);
         }
 
         .score-card h4 {
             font-size: 0.9em;
             margin-bottom: 10px;
-            opacity: 0.9;
+            opacity: 1;
+            color: #ffffff;
+            font-weight: 600;
         }
 
         .score-card .score {
             font-size: 2.5em;
             font-weight: 700;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .score-card small {
+            color: #ffffff;
+            opacity: 0.9;
         }
 
         .final-score {
-            background: rgba(255,255,255,0.95);
+            background: rgba(255,255,255,0.25);
             padding: 30px;
             border-radius: 10px;
             text-align: center;
             margin-top: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
         }
 
         .final-score h3 {
-            color: #333;
+            color: #ffffff;
             margin-bottom: 15px;
+            font-size: 1.5em;
         }
 
         .final-score .score {
             font-size: 4em;
             font-weight: 700;
             margin: 20px 0;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
         .rating {
@@ -306,29 +320,39 @@
             font-weight: 700;
             display: inline-block;
             margin: 15px 0;
+            border: 3px solid rgba(255,255,255,0.3);
+            color: #ffffff;
+            background: rgba(0,0,0,0.2);
         }
 
-        .rating-critical { background: #dc3545; color: white; }
-        .rating-high { background: #fd7e14; color: white; }
-        .rating-medium { background: #ffc107; color: #333; }
-        .rating-low { background: #28a745; color: white; }
-        .rating-info { background: #17a2b8; color: white; }
+        .rating-critical { background: #dc3545; color: white; border-color: #c82333; }
+        .rating-high { background: #fd7e14; color: white; border-color: #e8690b; }
+        .rating-medium { background: #ffc107; color: #333; border-color: #d39e00; }
+        .rating-low { background: #28a745; color: white; border-color: #218838; }
+        .rating-info { background: #17a2b8; color: white; border-color: #138496; }
 
         .recommendations {
-            background: rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.25);
             padding: 25px;
             border-radius: 10px;
             margin-top: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
         }
 
         .recommendations h4 {
             margin-bottom: 15px;
             font-size: 1.3em;
+            color: #ffffff;
         }
 
         .recommendations ul {
             list-style-position: inside;
             line-height: 1.8;
+            color: #ffffff;
+        }
+
+        .recommendations p {
+            color: #ffffff;
         }
 
         .actions {
@@ -823,7 +847,7 @@
 
             <!-- Results Section -->
             <div class="results">
-                <h2>📊 OTRSC Assessment Results</h2>
+                <h2>📊 OT Risk Seveirty Assessment Results</h2>
                 
                 <div class="score-display">
                     <div class="score-card">
@@ -859,8 +883,8 @@
                 </div>
 
                 <div class="final-score">
-                    <h3>Final OTRSC Score</h3>
-                    <div class="score" id="finalScore" style="color: #667eea;">0.0</div>
+                    <h3>Final Score</h3>
+                    <div class="score" id="finalScore" style="color: #ffffff;">0.0</div>
                     <div class="rating" id="riskRating">NOT ASSESSED</div>
                     
                     <div class="recommendations">
