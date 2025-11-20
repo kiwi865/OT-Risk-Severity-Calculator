@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OT Risk Severity Calculator v2.0</title>
+    <title>OTRSC - OT Risk Severity Calculator v2.0</title>
     <style>
         * {
             margin: 0;
@@ -539,6 +539,10 @@
                     </div>
                     <div class="dimension-score" id="technicalScore">0.0</div>
                 </div>
+                <p style="margin-bottom: 15px; color: #666; font-size: 0.95em;">
+                    <strong>Note:</strong> Enter CVSS base score from your vulnerability scanner (Nessus, Qualys, etc.). 
+                    For vulnerabilities without CVSS scores, manually assess the exploitability characteristics.
+                </p>
                 <div class="options-grid">
                     <label class="option-box">
                         <input type="radio" name="technical" value="0" onclick="event.stopPropagation();">
@@ -637,6 +641,10 @@
                     </div>
                     <div class="dimension-score" id="aicScore">0.0</div>
                 </div>
+                <p style="margin-bottom: 15px; color: #666; font-size: 0.95em;">
+                    <strong>Note:</strong> Assess the actual operational impact in YOUR OT environment. 
+                    This may differ from CVSS CIA scoring, which is IT-focused. Consider real-world consequences specific to your asset and operations.
+                </p>
                 
                 <h4 style="margin: 15px 0 10px 0; color: #667eea;">Availability Impact:</h4>
                 <div class="options-grid">
@@ -847,7 +855,7 @@
 
             <!-- Results Section -->
             <div class="results">
-                <h2>📊 OT Risk Seveirty Assessment Results</h2>
+                <h2>📊 OTRSC Assessment Results</h2>
                 
                 <div class="score-display">
                     <div class="score-card">
@@ -883,7 +891,7 @@
                 </div>
 
                 <div class="final-score">
-                    <h3>Final Score</h3>
+                    <h3>Final OTRSC Score</h3>
                     <div class="score" id="finalScore" style="color: #ffffff;">0.0</div>
                     <div class="rating" id="riskRating">NOT ASSESSED</div>
                     
