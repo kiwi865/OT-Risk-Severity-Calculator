@@ -434,6 +434,29 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Method toggle buttons */
+        .method-btn {
+            padding: 12px 24px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            background: white;
+            color: #667eea;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .method-btn:hover {
+            background: #f0f4ff;
+        }
+
+        .method-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
     </style>
 </head>
 <body>
@@ -530,61 +553,182 @@
                 </div>
             </div>
 
-            <!-- Dimension 2: Technical Vulnerability (CVSS-based) -->
+            <!-- Dimension 2: Technical Vulnerability (Exploitability Only) -->
             <div class="dimension">
                 <div class="dimension-header">
                     <div class="dimension-title">
-                        <h3>🔧 2. Technical Vulnerability Severity</h3>
-                        <span class="weight-badge">Weight: 20%</span>
+                        <h3>🔧 2. Technical Vulnerability (Exploitability)</h3>
+                        <span class="weight-badge">Weight: 15%</span>
                     </div>
                     <div class="dimension-score" id="technicalScore">0.0</div>
                 </div>
+                
                 <p style="margin-bottom: 15px; color: #666; font-size: 0.95em;">
-                    <strong>Note:</strong> Enter CVSS base score from your vulnerability scanner (Nessus, Qualys, etc.). 
-                    For vulnerabilities without CVSS scores, manually assess exploitability: <em>Network access? Authentication required? 
-                    User interaction needed?</em> The AIC Impact dimension below allows you to contextualize the impact for your specific OT environment.
+                    <strong>Note:</strong> This dimension measures <em>exploitability only</em> (how easy to exploit). 
+                    Impact (CIA) is assessed separately in the AIC Impact dimension below.
                 </p>
-                <div class="options-grid">
-                    <label class="option-box">
-                        <input type="radio" name="technical" value="0" onclick="event.stopPropagation();">
-                        <div class="option-content">
-                            <div class="option-label">None</div>
-                            <div class="option-value">CVSS: 0.0</div>
-                            <div class="option-desc">No vulnerability</div>
+                
+                <!-- Assessment Method Toggle -->
+                <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <button type="button" id="cvssMethodBtn" class="method-btn active" onclick="switchTechnicalMethod('cvss')">
+                        📊 CVSS Vector String
+                    </button>
+                    <button type="button" id="manualMethodBtn" class="method-btn" onclick="switchTechnicalMethod('manual')">
+                        🔧 Manual Assessment
+                    </button>
+                </div>
+                
+                <!-- CVSS Vector Mode -->
+                <div id="cvssMode">
+                    <p style="margin-bottom: 15px; color: #666; font-size: 0.95em;">
+                        <strong>Paste CVSS vector string from your vulnerability scanner.</strong> 
+                        The calculator will extract only the exploitability metrics (AV, AC, PR, UI, S) and ignore CIA impact metrics.
+                    </p>
+                    
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <label for="cvssVector" style="font-weight: 600; margin-bottom: 5px;">CVSS Vector String:</label>
+                        <input type="text" id="cvssVector" 
+                               placeholder="e.g., CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H" 
+                               style="padding: 12px; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1em; font-family: monospace;"
+                               oninput="parseCVSSVector()">
+                    </div>
+                    
+                    <div id="cvssParseResult" style="display: none; background: #f0f4f8; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-weight: 600; color: #333;">Exploitability Score:</span>
+                            <span id="cvssExploitScore" style="font-size: 1.5em; font-weight: 700; color: #667eea;">0.0</span>
                         </div>
-                    </label>
-                    <label class="option-box">
-                        <input type="radio" name="technical" value="3" onclick="event.stopPropagation();">
-                        <div class="option-content">
-                            <div class="option-label">Low</div>
-                            <div class="option-value">CVSS: 0.1-3.9</div>
-                            <div class="option-desc">Local access, no privileges</div>
+                        <div id="cvssExtractedMetrics" style="font-size: 0.9em; color: #666;"></div>
+                        <div id="cvssIgnoredMetrics" style="font-size: 0.85em; color: #999; margin-top: 5px; font-style: italic;"></div>
+                    </div>
+                    
+                    <div id="cvssParseError" style="display: none; background: #fff3cd; border: 1px solid #ffc107; padding: 10px; border-radius: 5px; color: #856404; font-size: 0.9em;"></div>
+                </div>
+                
+                <!-- Manual Assessment Mode -->
+                <div id="manualMode" style="display: none;">
+                    <p style="margin-bottom: 15px; color: #666; font-size: 0.95em;">
+                        <strong>For vulnerabilities without CVSS scores,</strong> assess the exploitability characteristics below. 
+                        The score will be calculated automatically using the CVSS 3.1 exploitability formula.
+                    </p>
+                    
+                    <div style="background: #f0f4f8; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 600; color: #333;">Calculated Exploitability Score:</span>
+                            <span id="manualCalcScore" style="font-size: 1.5em; font-weight: 700; color: #667eea;">0.0</span>
                         </div>
-                    </label>
-                    <label class="option-box">
-                        <input type="radio" name="technical" value="5" onclick="event.stopPropagation();">
-                        <div class="option-content">
-                            <div class="option-label">Medium</div>
-                            <div class="option-value">CVSS: 4.0-6.9</div>
-                            <div class="option-desc">Network access, user interaction</div>
-                        </div>
-                    </label>
-                    <label class="option-box">
-                        <input type="radio" name="technical" value="7.5" onclick="event.stopPropagation();">
-                        <div class="option-content">
-                            <div class="option-label">High</div>
-                            <div class="option-value">CVSS: 7.0-8.9</div>
-                            <div class="option-desc">Network exploitable</div>
-                        </div>
-                    </label>
-                    <label class="option-box">
-                        <input type="radio" name="technical" value="10" onclick="event.stopPropagation();">
-                        <div class="option-content">
-                            <div class="option-label">Critical</div>
-                            <div class="option-value">CVSS: 9.0-10.0</div>
-                            <div class="option-desc">Unauthenticated remote code execution</div>
-                        </div>
-                    </label>
+                    </div>
+                    
+                    <h4 style="margin: 15px 0 10px 0; color: #667eea;">Attack Vector (AV):</h4>
+                    <div class="options-grid">
+                        <label class="option-box">
+                            <input type="radio" name="attackVector" value="N" onclick="event.stopPropagation(); calculateManualScore();">
+                            <div class="option-content">
+                                <div class="option-label">Network (N)</div>
+                                <div class="option-desc">Remotely exploitable over network</div>
+                            </div>
+                        </label>
+                        <label class="option-box">
+                            <input type="radio" name="attackVector" value="A" onclick="event.stopPropagation(); calculateManualScore();">
+                            <div class="option-content">
+                                <div class="option-label">Adjacent (A)</div>
+                                <div class="option-desc">Requires same network segment</div>
+                            </div>
+                        </label>
+                        <label class="option-box">
+                            <input type="radio" name="attackVector" value="L" onclick="event.stopPropagation(); calculateManualScore();">
+                            <div class="option-content">
+                                <div class="option-label">Local (L)</div>
+                                <div class="option-desc">Requires local system access</div>
+                            </div>
+                        </label>
+                        <label class="option-box">
+                            <input type="radio" name="attackVector" value="P" onclick="event.stopPropagation(); calculateManualScore();">
+                            <div class="option-content">
+                                <div class="option-label">Physical (P)</div>
+                                <div class="option-desc">Requires physical device access</div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <h4 style="margin: 15px 0 10px 0; color: #667eea;">Attack Complexity (AC):</h4>
+                    <div class="options-grid">
+                        <label class="option-box">
+                            <input type="radio" name="attackComplexity" value="L" onclick="event.stopPropagation(); calculateManualScore();">
+                            <div class="option-content">
+                                <div class="option-label">Low (L)</div>
+                                <div class="option-desc">No special conditions needed</div>
+                            </div>
+                        </label>
+                        <label class="option-box">
+                            <input type="radio" name="attackComplexity" value="H" onclick="event.stopPropagation(); calculateManualScore();">
+                            <div class="option-content">
+                                <div class="option-label">High (H)</div>
+                                <div class="option-desc">Specialized skills or conditions required</div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <h4 style="margin: 15px 0 10px 0; color: #667eea;">Privileges Required (PR):</h4>
+                    <div class="options-grid">
+                        <label class="option-box">
+                            <input type="radio" name="privRequired" value="N" onclick="event.stopPropagation(); calculateManualScore();">
+                            <div class="option-content">
+                                <div class="option-label">None (N)</div>
+                                <div class="option-desc">No authentication needed</div>
+                            </div>
+                        </label>
+                        <label class="option-box">
+                            <input type="radio" name="privRequired" value="L" onclick="event.stopPropagation(); calculateManualScore();">
+                            <div class="option-content">
+                                <div class="option-label">Low (L)</div>
+                                <div class="option-desc">Basic user privileges needed</div>
+                            </div>
+                        </label>
+                        <label class="option-box">
+                            <input type="radio" name="privRequired" value="H" onclick="event.stopPropagation(); calculateManualScore();">
+                            <div class="option-content">
+                                <div class="option-label">High (H)</div>
+                                <div class="option-desc">Admin/elevated privileges needed</div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <h4 style="margin: 15px 0 10px 0; color: #667eea;">User Interaction (UI):</h4>
+                    <div class="options-grid">
+                        <label class="option-box">
+                            <input type="radio" name="userInteraction" value="N" onclick="event.stopPropagation(); calculateManualScore();">
+                            <div class="option-content">
+                                <div class="option-label">None (N)</div>
+                                <div class="option-desc">No user action required</div>
+                            </div>
+                        </label>
+                        <label class="option-box">
+                            <input type="radio" name="userInteraction" value="R" onclick="event.stopPropagation(); calculateManualScore();">
+                            <div class="option-content">
+                                <div class="option-label">Required (R)</div>
+                                <div class="option-desc">User must perform an action</div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <h4 style="margin: 15px 0 10px 0; color: #667eea;">Scope (S):</h4>
+                    <div class="options-grid">
+                        <label class="option-box">
+                            <input type="radio" name="scope" value="U" onclick="event.stopPropagation(); calculateManualScore();">
+                            <div class="option-content">
+                                <div class="option-label">Unchanged (U)</div>
+                                <div class="option-desc">Impact limited to vulnerable component</div>
+                            </div>
+                        </label>
+                        <label class="option-box">
+                            <input type="radio" name="scope" value="C" onclick="event.stopPropagation(); calculateManualScore();">
+                            <div class="option-content">
+                                <div class="option-label">Changed (C)</div>
+                                <div class="option-desc">Can impact other components (e.g., VM escape)</div>
+                            </div>
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -638,7 +782,7 @@
                 <div class="dimension-header">
                     <div class="dimension-title">
                         <h3>🔐 4. AIC Impact (Availability, Integrity, Confidentiality)</h3>
-                        <span class="weight-badge">Weight: 15%</span>
+                        <span class="weight-badge">Weight: 20%</span>
                     </div>
                     <div class="dimension-score" id="aicScore">0.0</div>
                 </div>
@@ -929,9 +1073,9 @@
         // Weight configuration
         const WEIGHTS = {
             safety: 0.30,
-            technical: 0.20,
+            technical: 0.15,
             asset: 0.20,
-            aic: 0.15,
+            aic: 0.20,
             environment: 0.10,
             threat: 0.05
         };
@@ -970,6 +1114,200 @@
             if (urlParams.toString()) {
                 calculateScore();
             }
+        }
+
+        // Track current assessment method
+        let currentTechnicalMethod = 'cvss';
+
+        function switchTechnicalMethod(method) {
+            currentTechnicalMethod = method;
+            
+            // Update button states
+            document.getElementById('cvssMethodBtn').classList.toggle('active', method === 'cvss');
+            document.getElementById('manualMethodBtn').classList.toggle('active', method === 'manual');
+            
+            // Show/hide appropriate mode
+            document.getElementById('cvssMode').style.display = method === 'cvss' ? 'block' : 'none';
+            document.getElementById('manualMode').style.display = method === 'manual' ? 'block' : 'none';
+            
+            // Clear selections when switching modes
+            if (method === 'cvss') {
+                // Clear manual assessment selections
+                document.querySelectorAll('input[name="attackVector"]').forEach(r => r.checked = false);
+                document.querySelectorAll('input[name="attackComplexity"]').forEach(r => r.checked = false);
+                document.querySelectorAll('input[name="privRequired"]').forEach(r => r.checked = false);
+                document.querySelectorAll('input[name="userInteraction"]').forEach(r => r.checked = false);
+                document.querySelectorAll('input[name="scope"]').forEach(r => r.checked = false);
+                document.getElementById('manualCalcScore').textContent = '0.0';
+            } else {
+                // Clear CVSS vector input
+                document.getElementById('cvssVector').value = '';
+                document.getElementById('cvssParseResult').style.display = 'none';
+                document.getElementById('cvssParseError').style.display = 'none';
+                window.cvssExploitabilityScore = 0;
+            }
+            
+            // Update the technical score display
+            document.getElementById('technicalScore').textContent = '0.0';
+            window.manualTechnicalScore = 0;
+            calculateScore();
+        }
+
+        // CVSS 3.1 metric value mappings
+        const CVSS_VALUES = {
+            AV: { N: 0.85, A: 0.62, L: 0.55, P: 0.2 },
+            AC: { L: 0.77, H: 0.44 },
+            PR: { 
+                U: { N: 0.85, L: 0.62, H: 0.27 },  // Scope Unchanged
+                C: { N: 0.85, L: 0.68, H: 0.50 }   // Scope Changed
+            },
+            UI: { N: 0.85, R: 0.62 },
+            S: { U: 'Unchanged', C: 'Changed' }
+        };
+
+        function parseCVSSVector() {
+            const vectorInput = document.getElementById('cvssVector').value.trim();
+            const resultDiv = document.getElementById('cvssParseResult');
+            const errorDiv = document.getElementById('cvssParseError');
+            const scoreSpan = document.getElementById('cvssExploitScore');
+            const metricsDiv = document.getElementById('cvssExtractedMetrics');
+            const ignoredDiv = document.getElementById('cvssIgnoredMetrics');
+            
+            // Reset
+            resultDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+            
+            if (!vectorInput) {
+                document.getElementById('technicalScore').textContent = '0.0';
+                window.cvssExploitabilityScore = 0;
+                calculateScore();
+                return;
+            }
+            
+            try {
+                // Parse CVSS vector string
+                // Format: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+                const metrics = {};
+                const parts = vectorInput.split('/');
+                
+                parts.forEach(part => {
+                    const [key, value] = part.split(':');
+                    if (key && value) {
+                        metrics[key.toUpperCase()] = value.toUpperCase();
+                    }
+                });
+                
+                // Validate required exploitability metrics
+                const required = ['AV', 'AC', 'PR', 'UI', 'S'];
+                const missing = required.filter(m => !metrics[m]);
+                
+                if (missing.length > 0) {
+                    throw new Error(`Missing required metrics: ${missing.join(', ')}`);
+                }
+                
+                // Get metric values
+                const av = CVSS_VALUES.AV[metrics.AV];
+                const ac = CVSS_VALUES.AC[metrics.AC];
+                const scope = metrics.S;
+                const pr = CVSS_VALUES.PR[scope][metrics.PR];
+                const ui = CVSS_VALUES.UI[metrics.UI];
+                
+                if (av === undefined || ac === undefined || pr === undefined || ui === undefined) {
+                    throw new Error('Invalid metric values in vector string');
+                }
+                
+                // Calculate exploitability sub-score (CVSS 3.1 formula)
+                // Exploitability = 8.22 × AV × AC × PR × UI
+                // Max = 8.22 × 0.85 × 0.77 × 0.85 × 0.85 = 3.887
+                // Normalize to 0-10 scale
+                const rawExploitability = 8.22 * av * ac * pr * ui;
+                const normalizedScore = Math.min(10, (rawExploitability / 3.887) * 10);
+                const exploitability = Math.round(normalizedScore * 10) / 10;
+                
+                // Store the score
+                window.cvssExploitabilityScore = exploitability;
+                
+                // Update display
+                scoreSpan.textContent = exploitability.toFixed(1);
+                document.getElementById('technicalScore').textContent = exploitability.toFixed(1);
+                
+                // Show extracted metrics
+                metricsDiv.innerHTML = `
+                    <strong>Extracted:</strong> 
+                    AV:${metrics.AV} (${av}) | 
+                    AC:${metrics.AC} (${ac}) | 
+                    PR:${metrics.PR} (${pr}) | 
+                    UI:${metrics.UI} (${ui}) | 
+                    S:${metrics.S}
+                `;
+                
+                // Show ignored metrics
+                const ignored = ['C', 'I', 'A'].filter(m => metrics[m]);
+                if (ignored.length > 0) {
+                    ignoredDiv.innerHTML = `<strong>Ignored (assessed in AIC):</strong> ${ignored.map(m => `${m}:${metrics[m]}`).join(', ')}`;
+                    ignoredDiv.style.display = 'block';
+                } else {
+                    ignoredDiv.style.display = 'none';
+                }
+                
+                resultDiv.style.display = 'block';
+                
+                // Update main score
+                calculateScore();
+                
+            } catch (error) {
+                errorDiv.textContent = `⚠️ ${error.message}. Expected format: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H`;
+                errorDiv.style.display = 'block';
+                document.getElementById('technicalScore').textContent = '0.0';
+                window.cvssExploitabilityScore = 0;
+                calculateScore();
+            }
+        }
+
+        function calculateManualScore() {
+            // Get selected metric values
+            const av = document.querySelector('input[name="attackVector"]:checked')?.value;
+            const ac = document.querySelector('input[name="attackComplexity"]:checked')?.value;
+            const pr = document.querySelector('input[name="privRequired"]:checked')?.value;
+            const ui = document.querySelector('input[name="userInteraction"]:checked')?.value;
+            const scope = document.querySelector('input[name="scope"]:checked')?.value || 'U';
+            
+            // Convert to numeric values
+            const avVal = av ? CVSS_VALUES.AV[av] : 0;
+            const acVal = ac ? CVSS_VALUES.AC[ac] : 0;
+            const prVal = pr ? CVSS_VALUES.PR[scope][pr] : 0;
+            const uiVal = ui ? CVSS_VALUES.UI[ui] : 0;
+            
+            let exploitability = 0;
+            
+            if (avVal > 0 && acVal > 0 && prVal > 0 && uiVal > 0) {
+                // All factors selected - calculate exact exploitability score
+                const rawExploitability = 8.22 * avVal * acVal * prVal * uiVal;
+                const normalizedScore = Math.min(10, (rawExploitability / 3.887) * 10);
+                exploitability = Math.round(normalizedScore * 10) / 10;
+            } else {
+                // Partial selection - show estimated score
+                let factors = [];
+                if (avVal > 0) factors.push(avVal);
+                if (acVal > 0) factors.push(acVal);
+                if (prVal > 0) factors.push(prVal);
+                if (uiVal > 0) factors.push(uiVal);
+                
+                if (factors.length > 0) {
+                    // Estimate based on selected factors
+                    const avgFactor = factors.reduce((a, b) => a + b, 0) / factors.length;
+                    exploitability = Math.round(avgFactor * 100) / 10;
+                }
+            }
+            
+            // Update display
+            document.getElementById('manualCalcScore').textContent = exploitability.toFixed(1);
+            document.getElementById('technicalScore').textContent = exploitability.toFixed(1);
+            
+            // Store for main calculation
+            window.manualTechnicalScore = exploitability;
+            
+            calculateScore();
         }
 
         function generateShareableURL() {
@@ -1021,7 +1359,15 @@
         function calculateScore() {
             // Get selected values
             const safety = parseFloat(document.querySelector('input[name="safety"]:checked')?.value || 0);
-            const technical = parseFloat(document.querySelector('input[name="technical"]:checked')?.value || 0);
+            
+            // Technical score: use CVSS vector parsing or manual calculation based on current mode
+            let technical = 0;
+            if (currentTechnicalMethod === 'cvss') {
+                technical = window.cvssExploitabilityScore || 0;
+            } else {
+                technical = window.manualTechnicalScore || 0;
+            }
+            
             const asset = parseFloat(document.querySelector('input[name="asset"]:checked')?.value || 0);
             const availability = parseFloat(document.querySelector('input[name="availability"]:checked')?.value || 0);
             const integrity = parseFloat(document.querySelector('input[name="integrity"]:checked')?.value || 0);
@@ -1163,6 +1509,11 @@
                 // Reset date to today
                 document.getElementById('assessmentDate').valueAsDate = new Date();
                 
+                // Reset technical method to CVSS
+                switchTechnicalMethod('cvss');
+                document.getElementById('manualCalcScore').textContent = '0.0';
+                window.manualTechnicalScore = 0;
+                
                 // Reset all scores
                 document.getElementById('safetyScore').textContent = '0.0';
                 document.getElementById('technicalScore').textContent = '0.0';
@@ -1187,6 +1538,23 @@
         }
 
         function exportData() {
+            // Get technical score based on method
+            let technicalScore = 0;
+            let technicalMethod = currentTechnicalMethod;
+            let manualFactors = null;
+            
+            if (currentTechnicalMethod === 'cvss') {
+                technicalScore = parseFloat(document.querySelector('input[name="technical"]:checked')?.value || 0);
+            } else {
+                technicalScore = window.manualTechnicalScore || 0;
+                manualFactors = {
+                    attackVector: document.querySelector('input[name="attackVector"]:checked')?.parentElement.querySelector('.option-label')?.textContent || 'Not selected',
+                    attackComplexity: document.querySelector('input[name="attackComplexity"]:checked')?.parentElement.querySelector('.option-label')?.textContent || 'Not selected',
+                    privilegesRequired: document.querySelector('input[name="privRequired"]:checked')?.parentElement.querySelector('.option-label')?.textContent || 'Not selected',
+                    userInteraction: document.querySelector('input[name="userInteraction"]:checked')?.parentElement.querySelector('.option-label')?.textContent || 'Not selected'
+                };
+            }
+            
             const data = {
                 metadata: {
                     exportDate: new Date().toISOString(),
@@ -1201,7 +1569,11 @@
                 },
                 dimensions: {
                     safety: parseFloat(document.querySelector('input[name="safety"]:checked')?.value || 0),
-                    technical: parseFloat(document.querySelector('input[name="technical"]:checked')?.value || 0),
+                    technical: {
+                        method: technicalMethod,
+                        score: technicalScore,
+                        manualFactors: manualFactors
+                    },
                     asset: parseFloat(document.querySelector('input[name="asset"]:checked')?.value || 0),
                     aic: {
                         availability: parseFloat(document.querySelector('input[name="availability"]:checked')?.value || 0),
