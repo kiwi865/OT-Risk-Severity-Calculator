@@ -9,6 +9,7 @@
 - [Why This Calculator? The Problem with Existing Methods](#why-this-calculator-the-problem-with-existing-methods)
 - [Comparison: CVSS vs 5x5 Matrix vs OT Risk Severity Calculator](#comparison-cvss-vs-5x5-matrix-vs-ot-risk-severity-calculator)
 - [Key Features](#key-features)
+- [Understanding Technical Vulnerability vs AIC Impact](#understanding-technical-vulnerability-vs-aic-impact)
 - [How to Use the Calculator](#how-to-use-the-calculator)
 - [Methodology](#methodology)
 - [Scoring Dimensions](#scoring-dimensions)
@@ -258,6 +259,12 @@ Many users wonder: "Doesn't CVSS already include impact scoring? Why do we need 
 
 **The Answer:** These dimensions serve complementary but distinct purposes in OT risk assessment.
 
+**Important Clarification:** The AIC Impact dimension does NOT recalculate or modify the CVSS base score. Instead:
+- **Technical Vulnerability (20%)** = Uses CVSS as-is (or manual assessment)
+- **AIC Impact (15%)** = Your separate OT-specific impact assessment
+
+These are **parallel assessments** that get weighted into the final score. The CVSS-included CIA impact remains in Technical Vulnerability; the AIC Impact dimension lets you add OT-specific context as an additional consideration.
+
 ### Technical Vulnerability (20%) - Generic IT-Centric Severity
 
 **Purpose:** Captures the baseline technical severity as reported by vulnerability scanners.
@@ -329,6 +336,41 @@ If no CVSS:
   → Manually assess:
      - How exploitable? (Network/Local? Authenticated?)
      - Select appropriate range (0, 3, 5, 7.5, 10)
+```
+
+### Manual Assessment Guide (When No CVSS Available)
+
+For vulnerabilities without a CVSS score (common in OT environments), use this guide to manually assess exploitability:
+
+| Factor | Higher Risk ↑ | Lower Risk ↓ |
+|--------|--------------|--------------|
+| **Attack Vector** | Network-accessible | Physical access required |
+| **Authentication** | No auth required | Privileges/credentials needed |
+| **User Interaction** | None required | Requires user action |
+| **Attack Complexity** | Low / Easy | High / Specialized skills |
+
+**Quick Manual Scoring Reference:**
+
+| Score | Select When... |
+|-------|---------------|
+| **10 (Critical)** | Network accessible, no authentication, no user interaction, low complexity |
+| **7.5 (High)** | Network accessible with SOME barriers (auth OR complexity OR user interaction) |
+| **5 (Medium)** | Requires user interaction AND authentication, OR local access with no barriers |
+| **3 (Low)** | Local access required AND authentication required AND high complexity |
+| **0 (None)** | No exploitable vulnerability or purely theoretical |
+
+**Example Manual Assessment:**
+```
+Vulnerability: Default credentials on legacy SCADA HMI
+No CVE, No CVSS available
+
+Assessment:
+  - Attack Vector: Network (device on OT network)  → Higher risk
+  - Authentication: None (default creds = no auth) → Higher risk
+  - User Interaction: None                         → Higher risk
+  - Complexity: Low (just login with defaults)     → Higher risk
+  
+Result: Score = 10 (Critical exploitability)
 ```
 
 **Step 2:** Assess OT-Specific AIC Impact
@@ -502,123 +544,6 @@ Based on the score:
 - **🔗 Copy URL**: Share assessment with team members
 - **🔄 Reset**: Start a new assessment
 
----
-
-## Understanding Technical Vulnerability vs AIC Impact
-
-### Why Two Separate Dimensions?
-
-Many users wonder: "Doesn't CVSS already include impact scoring? Why do we need both Technical Vulnerability (20%) and AIC Impact (15%)?"
-
-**The Answer:** These dimensions serve complementary but distinct purposes in OT risk assessment.
-
-### Technical Vulnerability (20%) - Generic IT-Centric Severity
-
-**Purpose:** Captures the baseline technical severity as reported by vulnerability scanners.
-
-**Source:** 
-- CVSS base score from scanners (Nessus, Qualys, Tenable, Rapid7, etc.)
-- Manual assessment if no CVSS available
-
-**What it measures:**
-- Exploitability characteristics (attack vector, complexity, privileges required)
-- Generic impact assumptions (based on IT security principles)
-- CIA impact in a typical IT environment
-
-**Key Point:** This is **context-free** scoring - the same CVSS score applies regardless of where the vulnerability exists.
-
-### AIC Impact (15%) - OT-Specific Operational Context
-
-**Purpose:** Contextualizes the impact for YOUR specific OT environment.
-
-**Source:** 
-- Your assessment of operational consequences
-- Consideration of asset role, network architecture, compensating controls
-- Real-world operational priorities
-
-**What it measures:**
-- **Availability impact** in your production environment
-- **Integrity impact** on your process control systems
-- **Confidentiality impact** given your data sensitivity and network isolation
-
-**Key Point:** This is **context-aware** scoring - the same vulnerability has different impacts depending on OT-specific factors.
-
-### Real-World Example: CVSS 7.5 Information Disclosure
-
-```
-Vulnerability: CVE-2024-XXXX - Information Disclosure in SCADA Software
-CVSS Base Score: 7.5 (High)
-CVSS Vector: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N
-             (High Confidentiality Impact, No Integrity/Availability Impact)
-```
-
-#### Scenario 1: Corporate IT Network
-- **Technical Vulnerability**: 7.5 (use CVSS directly)
-- **AIC Impact**: A:0, I:0, C:10 (High confidentiality concern)
-- **AIC Average**: 3.33
-- **Rationale**: Exposed sensitive business data is critical in IT
-
-#### Scenario 2: Isolated OT Network (Production HMI)
-- **Technical Vulnerability**: 7.5 (same CVSS)
-- **AIC Impact**: A:0, I:0, C:3.33 (Low confidentiality concern)
-- **AIC Average**: 1.11
-- **Rationale**: Data is process parameters on isolated network - minimal confidentiality value
-
-#### Scenario 3: OT System with Remote Access
-- **Technical Vulnerability**: 7.5 (same CVSS)
-- **AIC Impact**: A:3.33, I:3.33, C:6.67 (Moderate mixed impact)
-- **AIC Average**: 4.44
-- **Rationale**: Remote access means data exposure could enable reconnaissance for future attacks
-
-**Same CVSS (7.5), Three Different OT Risk Profiles!**
-
-### Workflow for Using Both Dimensions
-
-**Step 1:** Enter Technical Vulnerability Score
-```
-If CVSS available:
-  → Use CVSS base score directly (e.g., 7.5)
-  
-If no CVSS:
-  → Manually assess:
-     - How exploitable? (Network/Local? Authenticated?)
-     - Select appropriate range (0, 3, 5, 7.5, 10)
-```
-
-**Step 2:** Assess OT-Specific AIC Impact
-```
-For YOUR specific environment:
-  
-Availability:
-  → "If exploited, what happens to operations?"
-  → Consider: downtime, production loss, safety system impact
-  
-Integrity:
-  → "Can attacker manipulate process control or data?"
-  → Consider: control logic, setpoints, safety parameters
-  
-Confidentiality:
-  → "How sensitive is the exposed data in OT context?"
-  → Consider: network isolation, data value, IP risk
-```
-
-**Step 3:** Calculator Combines Both
-```
-Final Score = (Safety × 30%) + (Technical × 20%) + (Asset × 20%) + 
-              (AIC × 15%) + (Environment × 10%) + (Threat × 5%)
-```
-
-### Key Takeaways
-
-✅ **Technical Vulnerability** = Generic severity (same everywhere)  
-✅ **AIC Impact** = Your specific operational reality (context-dependent)  
-✅ **Together** = Accurate OT risk assessment that respects both technical severity and operational context  
-✅ **No double-counting** = They measure different aspects of risk
-
-This approach allows you to:
-- Accept CVSS scores from scanners (plug-and-play)
-- Override IT-centric CIA assumptions with OT-specific AIC reality
-- Produce accurate, defensible risk scores for OT environments
 
 ---
 
@@ -1013,4 +938,3 @@ requests.post('https://tenable.sc/api/vulnerability', json=tenable_payload)
 - **SANS ICS Security:** https://www.sans.org/industrial-control-systems-security/
 
 ---
-
