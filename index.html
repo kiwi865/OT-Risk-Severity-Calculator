@@ -541,7 +541,8 @@
                 </div>
                 <p style="margin-bottom: 15px; color: #666; font-size: 0.95em;">
                     <strong>Note:</strong> Enter CVSS base score from your vulnerability scanner (Nessus, Qualys, etc.). 
-                    For vulnerabilities without CVSS scores, manually assess the exploitability characteristics.
+                    For vulnerabilities without CVSS scores, manually assess exploitability: <em>Network access? Authentication required? 
+                    User interaction needed?</em> The AIC Impact dimension below allows you to contextualize the impact for your specific OT environment.
                 </p>
                 <div class="options-grid">
                     <label class="option-box">
@@ -642,8 +643,9 @@
                     <div class="dimension-score" id="aicScore">0.0</div>
                 </div>
                 <p style="margin-bottom: 15px; color: #666; font-size: 0.95em;">
-                    <strong>Note:</strong> Assess the actual operational impact in YOUR OT environment. 
-                    This may differ from CVSS CIA scoring, which is IT-focused. Consider real-world consequences specific to your asset and operations.
+                    <strong>Note:</strong> Assess the <em>actual operational impact</em> in YOUR OT environment. 
+                    This overrides the IT-centric CIA assumptions in CVSS. In OT, Availability typically matters most (opposite of IT's CIA priority). 
+                    Consider: network isolation, asset role, redundancy, and real operational consequences.
                 </p>
                 
                 <h4 style="margin: 15px 0 10px 0; color: #667eea;">Availability Impact:</h4>
